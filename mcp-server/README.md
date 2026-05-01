@@ -22,7 +22,7 @@ APPSCREEN_URL=http://localhost:8000 APPSCREEN_OUTPUT_DIR=./outputs npm start
 For a hosted fork:
 
 ```bash
-APPSCREEN_URL=https://appsolves.github.io/appscreen/ npm start
+APPSCREEN_URL=https://appsolves.github.io/appscreen-mcp/ npm start
 ```
 
 For local development, start the app from the repository root first:
@@ -71,8 +71,24 @@ python3 -m http.server 8000
 - `appscreen_apply_style_to_all`
 - `appscreen_export_current_png`
 - `appscreen_export_all_zip`
-- `appscreen_run_cable_launch_recipe`
+- `appscreen_demo_run_cable_launch_recipe`
 - `appscreen_raw_bridge_call`
+- `appscreen_get_usage_guide`
+- `appscreen_create_screenshot_set`
+- `appscreen_capture_editor_preview`
+
+## Recommended workflow for agents
+
+For production App Store screenshot sets with different captions per screenshot, use:
+
+1. `appscreen_initialize`
+2. `appscreen_get_usage_guide`
+3. `appscreen_get_capabilities`
+4. `appscreen_create_screenshot_set`
+5. `appscreen_capture_editor_preview` if visual editor inspection is needed
+6. `appscreen_export_all_zip` if the ZIP was not already exported by `appscreen_create_screenshot_set`
+
+Do not use `appscreen_demo_run_cable_launch_recipe` for production multi-screen sets. It is a legacy/demo shortcut that applies one shared headline/subheadline map across all screenshots.
 
 ## File inputs
 

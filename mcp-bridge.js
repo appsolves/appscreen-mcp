@@ -13,7 +13,7 @@
 (function () {
     'use strict';
 
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.1';
     const IMAGE_LOAD_TIMEOUT_MS = 30_000;
     const RENDER_SETTLE_MS = 150;
 
@@ -330,7 +330,9 @@
                     threeDimensionalMockups: true,
                     elements: true,
                     popouts: true,
-                    aiTranslationViaAppSettings: true
+                    aiTranslationViaAppSettings: true,
+                    batchScreenshotSetCreation: true,
+                    editorPreviewCaptureViaMcpServer: true,
                 }
             }));
         },
@@ -709,8 +711,144 @@
             });
         },
 
-        async runCableLaunchRecipe({ screenshots, projectName = 'Cable Launch', languages = ['en', 'de'], headline, subheadline } = {}) {
-            return invoke('runCableLaunchRecipe', async () => {
+        async createScreenshotSet({
+            projectName = 'AppScreen Campaign',
+            outputDevice = 'iphone-6.9',
+            width = null,
+            height = null,
+            languages = ['en'],
+            background = null,
+            deviceSettings = {},
+            textSettings = {},
+            screenshots = [],
+            exportAllLanguagesZip = true
+        } = {}) {
+            return invoke('createScreenshotSet', async () => {
+                if (!Array.isArray(screenshots) || screenshots.length === 0) {
+                    throw new Error('screenshots must be a non-empty array. Each item must include dataUrl, name, and optional localized text.');
+                }
+
+                if (!Array.isArray(languages) || languages.length === 0) {
+                    throw new Error('languages must be a non-empty array, for example ["en", "de"].');
+                }
+
+                if (!knownOutputDevices.includes(outputDevice)) {
+                    throw new Error(`Unknown outputDevice "${outputDevice}". Supported values: ${knownOutputDevices.join(', ')}`);
+                }
+
+                await createProject(projectName);
+
+                ensureLanguages(languages);
+                state.projectLanguages = [...new Set(languages)];
+                state.currentLanguage = state.projectLanguages[0];
+
+                state.outputDevice = outputDevice;
+
+                if (outputDevice === 'custom') {
+                    const w = Number(width);
+                    const h = Number(height);
+
+                    if (!Number.isFinite(w) || !Number.isFinite(h) || w < 1 || h < 1) {
+                        throw new Error('Custom output size requires positive width and height.');
+                    }
+
+                    state.customWidth = Math.round(w);
+                    state.customHeight = Math.round(h);
+                }
+
+                for (const [i, item] of screenshots.entries()) {
+                    if (!item.dataUrl) {
+                        throw new Error(`screenshots[${i}] is missing dataUrl. The MCP server should hydrate filePath/base64 into dataUrl before calling the bridge.`);
+                    }
+
+                    const img = await loadImageFromDataUrl(item.dataUrl);
+                    const primaryLanguage = item.language || state.projectLanguages[0] || 'en';
+                    const resolvedDeviceType = item.deviceType || detectDeviceType(img);
+                    const name = item.name || `screenshot-${i + 1}.png`;
+
+                    createNewScreenshot(img, item.dataUrl, name, primaryLanguage, resolvedDeviceType);
+
+                    const newIndex = state.screenshots.length - 1;
+                    const s = ensureScreenshot(newIndex);
+
+                    if (background) {
+                        deepMerge(s.background, clonePlain(background));
+                    }
+
+                    if (deviceSettings) {
+                        deepMerge(s.screenshot, clonePlain(deviceSettings));
+                    }
+
+                    s.text = normalizeTextSettings(s.text);
+
+                    const headlineMap = {};
+                    const subheadlineMap = {};
+
+                    if (item.text && typeof item.text === 'object' && !Array.isArray(item.text)) {
+                        Object.entries(item.text).forEach(([lang, entry]) => {
+                            if (!entry || typeof entry !== 'object') return;
+
+                            if (typeof entry.headline === 'string') {
+                                headlineMap[lang] = entry.headline;
+                            }
+
+                            if (typeof entry.subheadline === 'string') {
+                                subheadlineMap[lang] = entry.subheadline;
+                            }
+
+                            if (entry.settings && typeof entry.settings === 'object') {
+                                deepMerge(s.text, entry.settings);
+                            }
+                        });
+                    }
+
+                    if (Object.keys(headlineMap).length > 0 || Object.keys(subheadlineMap).length > 0) {
+                        setTextMaps(s.text, {
+                            headline: headlineMap,
+                            subheadline: subheadlineMap
+                        });
+
+                        s.text.headlineEnabled = Object.keys(headlineMap).length > 0;
+                        s.text.subheadlineEnabled = Object.keys(subheadlineMap).length > 0;
+                    }
+
+                    if (textSettings) {
+                        deepMerge(s.text, clonePlain(textSettings));
+                    }
+
+                    s.text.currentHeadlineLang = state.currentLanguage;
+                    s.text.currentSubheadlineLang = state.currentLanguage;
+                }
+
+                state.selectedIndex = 0;
+                refresh();
+
+                const response = {
+                    projectId: currentProjectId,
+                    screenshotCount: state.screenshots.length,
+                    selectedIndex: state.selectedIndex,
+                    outputDevice: state.outputDevice,
+                    languages: state.projectLanguages.slice()
+                };
+
+                if (exportAllLanguagesZip) {
+                    const zip = await exportZipDataUrl({ languages: state.projectLanguages });
+
+                    return {
+                        ...response,
+                        fileName: `screenshots_${state.outputDevice}_all-languages.zip`,
+                        mimeType: 'application/zip',
+                        dataUrl: zip,
+                        base64: base64FromDataUrl(zip)
+                    };
+                }
+
+                return response;
+            });
+        },
+
+        async runDemoCableLaunchRecipe({ screenshots, projectName = 'Cable Launch', languages = ['en', 'de'], headline, subheadline } = {}) {
+            return invoke('runDemoCableLaunchRecipe', async () => {
                 if (!Array.isArray(screenshots) || screenshots.length === 0) throw new Error('screenshots must contain dataUrl/name entries.');
                 await createProject(projectName);
                 ensureLanguages(languages);

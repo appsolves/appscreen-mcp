@@ -30,7 +30,7 @@ let currentUrl = DEFAULT_APP_URL;
 
 const server = new McpServer({
   name: 'appscreen-mcp',
-  version: '1.0.0',
+  version: '1.0.1',
 });
 
 function text(data: unknown) {
@@ -152,6 +152,30 @@ const maybeFileImage = {
 
 const indexArg = z.number().int().min(0).optional();
 
+const localizedStringMap = z
+  .record(z.string(), z.string())
+  .describe(
+    'Localized string map keyed by language code. Example: { "en": "Title", "de": "Titel" }.',
+  );
+
+const backgroundPatchSchema = z
+  .record(z.string(), z.any())
+  .describe(
+    'Background patch. Examples: { "type": "solid", "solid": "#111827" } or { "type": "gradient", "gradient": { "angle": 135, "stops": [{ "color": "#2563eb", "position": 0 }, { "color": "#7c3aed", "position": 100 }] } }.',
+  );
+
+const deviceSettingsSchema = z
+  .record(z.string(), z.any())
+  .describe(
+    'Device/mockup settings patch. Common fields: x, y, scale, rotation, cornerRadius, shadowEnabled, shadowColor, shadowBlur, use3D, device3D, rotation3D.',
+  );
+
+const textSettingsSchema = z
+  .record(z.string(), z.any())
+  .describe(
+    'Text style/settings patch. Common fields: position, offsetY, headlineEnabled, subheadlineEnabled, headlineFontSize, subheadlineFontSize, headlineColor, subheadlineColor, fontFamily.',
+  );
+
 function registerTool<T extends z.ZodRawShape>(
   name: string,
   description: string,
@@ -175,6 +199,45 @@ function registerTool<T extends z.ZodRawShape>(
     callback as any,
   );
 }
+
+registerTool(
+  'appscreen_get_usage_guide',
+  `Return the recommended AppScreen MCP workflows and important schema rules.
+
+Call this before creating real production assets if you are unsure which tool to use.
+
+Key guidance:
+- For polished multi-screen App Store sets with different text per screenshot, prefer appscreen_create_screenshot_set.
+- Do not use appscreen_demo_run_cable_launch_recipe for production per-screenshot captions. It is a legacy/simple demo shortcut.
+- For manual control, use: initialize -> create_project -> set_output_size -> set_languages -> add_screenshot/select_screenshot -> set_text/set_background/set_device_settings -> export.
+- appscreen_set_text affects one screenshot only. Use index or select_screenshot first.
+- headline/subheadline can be one string for one language, or a localized map like { "en": "Title", "de": "Titel" }.
+- To let the agent visually inspect the editor UI, use appscreen_capture_editor_preview. To inspect final App Store assets, export PNG/ZIP.`,
+  {},
+  async () => ({
+    ok: true,
+    workflows: {
+      productionMultiScreenSet: [
+        'appscreen_initialize',
+        'appscreen_get_capabilities',
+        'appscreen_create_screenshot_set',
+        'appscreen_export_all_zip if export was not requested inside create_screenshot_set',
+      ],
+      manualPerScreenshotControl: [
+        'appscreen_initialize',
+        'appscreen_create_project',
+        'appscreen_set_output_size',
+        'appscreen_set_languages',
+        'For each screenshot: appscreen_add_screenshot, appscreen_select_screenshot, appscreen_set_text, appscreen_set_background, appscreen_set_device_settings',
+        'appscreen_export_current_png or appscreen_export_all_zip',
+      ],
+    },
+    warnings: [
+      'appscreen_demo_run_cable_launch_recipe is a legacy demo shortcut. It uses one shared headline/subheadline map across screenshots.',
+      'For eight different App Store assets with different captions, use appscreen_create_screenshot_set.',
+    ],
+  }),
+);
 
 registerTool(
   'appscreen_initialize',
@@ -266,10 +329,10 @@ registerTool('appscreen_duplicate_screenshot', 'Duplicate a screenshot by index.
 
 registerTool(
   'appscreen_set_background',
-  'Set gradient, solid, noise, blur, overlay, and other background settings for a screenshot.',
+  'Set background settings for one screenshot. This affects only the provided/selected screenshot. Use apply_style_to_all or create_screenshot_set for bulk styling.',
   {
     index: indexArg,
-    background: z.record(z.string(), z.any()).describe('Background patch. Examples: {type:"solid",solid:"#111827"} or {type:"gradient",gradient:{angle:135,stops:[...]}}'),
+    background: backgroundPatchSchema,
   },
   async (args) => bridge('setBackground', args),
 );
@@ -293,10 +356,10 @@ registerTool(
 
 registerTool(
   'appscreen_set_device_settings',
-  'Patch 2D/3D mockup settings: scale, x, y, rotation, perspective, corner radius, shadow, frame, use3D, device3D, rotation3D.',
+  'Patch 2D/3D mockup settings for one screenshot. This affects only the provided/selected screenshot.',
   {
     index: indexArg,
-    settings: z.record(z.string(), z.any()),
+    settings: deviceSettingsSchema,
   },
   async (args) => bridge('setDeviceSettings', args),
 );
@@ -305,13 +368,30 @@ registerTool('appscreen_apply_position_preset', 'Apply one of the app position p
 
 registerTool(
   'appscreen_set_text',
-  'Set headline/subheadline text and styling. headline/subheadline may be strings or language maps like {en:"...",de:"..."}.',
+  `Set headline/subheadline text and styling for one screenshot.
+
+Important:
+- This tool affects only one screenshot: the provided index or the currently selected screenshot.
+- For one language, pass language plus string headline/subheadline.
+- For multiple languages, pass localized maps like { "en": "Title", "de": "Titel" }.
+- For 8 different screenshots with different captions, call this once per screenshot, or use appscreen_create_screenshot_set.
+
+Example:
+{
+  "index": 0,
+  "headline": { "en": "Control your power", "de": "Kontrolliere deinen Strom" },
+  "subheadline": { "en": "Monitor batteries and circuits", "de": "Überwache Batterien und Stromkreise" },
+  "settings": { "position": "top", "offsetY": 12 }
+}`,
   {
     index: indexArg,
-    headline: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
-    subheadline: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
-    language: z.string().optional(),
-    settings: z.record(z.string(), z.any()).default({}),
+    headline: z.union([z.string(), localizedStringMap]).optional(),
+    subheadline: z.union([z.string(), localizedStringMap]).optional(),
+    language: z
+      .string()
+      .optional()
+      .describe('Language code to use when headline/subheadline are plain strings. Example: en.'),
+    settings: textSettingsSchema.default({}),
   },
   async (args) => bridge('setText', args),
 );
@@ -356,10 +436,156 @@ registerTool(
 );
 
 registerTool(
+  'appscreen_create_screenshot_set',
+  `Create a complete multi-screen App Store screenshot set in one call.
+
+Use this for production campaigns with per-screenshot captions, for example 8 screenshots where each asset has different English/German headline and subheadline.
+
+This tool:
+1. creates a project
+2. sets output size and languages
+3. uploads all screenshots
+4. applies shared background/device/text styling
+5. applies per-screenshot localized captions
+6. optionally exports all screenshots/languages as ZIP
+
+Example screenshot item:
+{
+  "filePath": "C:/screens/shot1.png",
+  "name": "Home",
+  "text": {
+    "en": { "headline": "Control your power", "subheadline": "Monitor batteries and circuits" },
+    "de": { "headline": "Kontrolliere deinen Strom", "subheadline": "Überwache Batterien und Stromkreise" }
+  }
+}`,
+  {
+    projectName: z.string().default('AppScreen Campaign'),
+    outputDevice: z
+      .enum([
+        'iphone-6.9',
+        'iphone-6.7',
+        'iphone-6.5',
+        'iphone-5.5',
+        'ipad-12.9',
+        'ipad-11',
+        'android-phone',
+        'android-phone-hd',
+        'android-tablet-7',
+        'android-tablet-10',
+        'web-og',
+        'web-twitter',
+        'web-hero',
+        'web-feature',
+        'custom',
+      ])
+      .default('iphone-6.9'),
+    width: z.number().positive().optional().describe('Required when outputDevice is custom.'),
+    height: z.number().positive().optional().describe('Required when outputDevice is custom.'),
+    languages: z.array(z.string().min(2)).min(1).default(['en']),
+    background: backgroundPatchSchema.optional(),
+    deviceSettings: deviceSettingsSchema.default({}),
+    textSettings: textSettingsSchema.default({}),
+    screenshots: z
+      .array(
+        z.object({
+          ...maybeFileImage,
+          name: z.string().optional(),
+          language: z.string().optional(),
+          deviceType: z.string().optional(),
+          text: z
+            .record(
+              z.string(),
+              z.object({
+                headline: z.string().optional(),
+                subheadline: z.string().optional(),
+                settings: z.record(z.string(), z.any()).optional(),
+              }),
+            )
+            .optional()
+            .describe(
+              'Per-screenshot localized caption map. Example: { "en": { "headline": "...", "subheadline": "..." }, "de": { "headline": "...", "subheadline": "..." } }.',
+            ),
+        }),
+      )
+      .min(1),
+    exportAllLanguagesZip: z.boolean().default(true),
+    saveToFile: z.boolean().default(true),
+    fileName: z.string().optional(),
+  },
+  async ({ screenshots, saveToFile, fileName, ...args }) => {
+    const hydratedScreenshots = await Promise.all(
+      screenshots.map(async (s) => ({
+        ...s,
+        dataUrl: await imageInputToDataUrl(s),
+      })),
+    );
+
+    const created = await bridge<{
+      projectId: string;
+      screenshotCount: number;
+      fileName?: string;
+      mimeType?: string;
+      base64?: string;
+      dataUrl?: string;
+    }>('createScreenshotSet', {
+      ...args,
+      screenshots: hydratedScreenshots,
+    });
+
+    let outputPath: string | undefined;
+
+    if (saveToFile && created.base64 && created.mimeType) {
+      outputPath = await saveBase64Artifact(
+        created.base64,
+        fileName ?? created.fileName ?? 'appscreen-screenshot-set.zip',
+        created.mimeType,
+      );
+    }
+
+    return {
+      ...created,
+      outputPath,
+    };
+  },
+);
+
+registerTool(
   'appscreen_patch_state',
   'Advanced escape hatch: deep-merge a patch into the app state. Use only when no higher-level tool fits.',
   { patch: z.record(z.string(), z.any()) },
   async (args) => bridge('patchState', args),
+);
+
+registerTool(
+  'appscreen_capture_editor_preview',
+  'Capture a PNG screenshot of the visible AppScreen editor UI via Playwright. Use this when the agent needs to visually inspect the editor, not just the exported App Store asset.',
+  {
+    saveToFile: z.boolean().default(true),
+    fileName: z.string().optional(),
+    fullPage: z.boolean().default(true),
+  },
+  async ({ saveToFile, fileName, fullPage }) => {
+    const p = await getPage();
+    const buffer = await p.screenshot({ type: 'png', fullPage });
+    const base64 = buffer.toString('base64');
+    const mimeType = 'image/png';
+
+    const outputPath = saveToFile
+      ? await saveBase64Artifact(
+        base64,
+        fileName ?? `appscreen-editor-preview-${crypto.randomUUID()}.png`,
+        mimeType,
+      )
+      : undefined;
+
+    return {
+      fileName: fileName ?? 'appscreen-editor-preview.png',
+      mimeType,
+      base64,
+      dataUrl: `data:${mimeType};base64,${base64}`,
+      outputPath,
+    };
+  },
 );
 
 registerTool(
@@ -394,8 +620,9 @@ registerTool(
 );
 
 registerTool(
-  'appscreen_run_cable_launch_recipe',
-  'End-to-end sample workflow: create Cable Launch, upload screenshots, configure English/German text, blue-purple gradient, centered rotated phone, and export all languages as ZIP.',
+  'appscreen_demo_run_cable_launch_recipe',
+  `Legacy/demo shortcut only: create Cable Launch, upload screenshots, apply one shared English/German headline/subheadline map, blue-purple gradient, centered rotated phone, and export all languages as ZIP.
+  Do NOT use this for production multi-screen App Store sets where every screenshot needs its own caption. For that, use appscreen_create_screenshot_set.`,
   {
     screenshots: z.array(z.object({
       ...maybeFileImage,
@@ -405,14 +632,18 @@ registerTool(
     })).min(1),
     projectName: z.string().default('Cable Launch'),
     languages: z.array(z.string()).default(['en', 'de']),
-    headline: z.record(z.string(), z.string()).optional(),
-    subheadline: z.record(z.string(), z.string()).optional(),
+    headline: localizedStringMap
+      .optional()
+      .describe('One shared localized headline map applied to all screenshots. Not per-screenshot.'),
+    subheadline: localizedStringMap
+      .optional()
+      .describe('One shared localized subheadline map applied to all screenshots. Not per-screenshot.'),
     saveToFile: z.boolean().default(true),
     fileName: z.string().optional(),
   },
   async ({ screenshots, saveToFile, fileName, ...args }) => {
     const hydratedScreenshots = await Promise.all(screenshots.map(async (s) => ({ ...s, dataUrl: await imageInputToDataUrl(s) })));
-    const exported = await bridge<{ fileName: string; mimeType: string; base64: string; dataUrl: string }>('runCableLaunchRecipe', { ...args, screenshots: hydratedScreenshots });
+    const exported = await bridge<{ fileName: string; mimeType: string; base64: string; dataUrl: string }>('runDemoCableLaunchRecipe', { ...args, screenshots: hydratedScreenshots });
     const outputPath = saveToFile ? await saveBase64Artifact(exported.base64, fileName ?? exported.fileName, exported.mimeType) : undefined;
     return { ...exported, outputPath };
   },
