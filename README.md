@@ -1,7 +1,6 @@
 # App Store Screenshot Generator
 
-A free, open-source tool for creating beautiful App Store screenshots with customizable backgrounds, text overlays, and 3D device mockups.
-
+A free, open-source tool for creating beautiful App Store screenshots with customizable backgrounds, text overlays, 2D and 3D device mockups, and full MCP-based automation for coding agents.
 
 **[Start using it now. Hosted on GitHub Pages](https://appsolves.github.io/appscreen-mcp/)**
 
@@ -9,16 +8,21 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> 🍋 **Built by [YuzuHub](https://yuzuhub.com)** — We build smart AI products in Düsseldorf, Germany. Check out [yuzu.chat](https://yuzu.chat), [Eno](https://eno.yuzuhub.com), [VoltPlan](https://voltplan.app) and more.
+> 🍋 **Original project by [YuzuHub](https://yuzuhub.com)**.  
+> This fork by **[AppSolves](https://appsolves.dev)** adds a full **Model Context Protocol (MCP) server** so coding agents such as Codex and Claude can control the screenshot generator programmatically.
 
 ## Features
 
 ### Output & Export
+
 - **Multiple Output Sizes**: iPhone 6.9", 6.7", 6.5", 5.5" and iPad 12.9", 11" App Store requirements, plus custom sizes
 - **Batch Export**: Export all screenshots at once as a ZIP file
 - **Per-Screenshot Settings**: Each screenshot can have its own background, device settings, and text
+- **PNG Export**: Export the current screenshot directly
+- **ZIP Export**: Export all screenshots for one or multiple languages
 
 ### Backgrounds
+
 - **Gradient Backgrounds**: Multi-stop gradients with draggable color stops and angle control
 - **Preset Gradients**: Quick-access gradient presets for common styles
 - **Solid Color**: Simple single-color backgrounds
@@ -26,6 +30,7 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 - **Noise Overlay**: Add subtle noise texture to any background
 
 ### Device Mockups
+
 - **2D Mode**: Position, scale, rotate, and adjust corner radius of screenshots
 - **3D Mode**: Interactive iPhone 15 Pro Max 3D mockup with drag-to-rotate
 - **Position Presets**: Centered, bleed, tilt left/right, perspective, and more
@@ -33,6 +38,7 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 - **Border Effects**: Add borders around screenshots with adjustable width and opacity
 
 ### Text Overlays
+
 - **Headlines & Subheadlines**: Separate controls with enable/disable toggles
 - **Font Picker**: Access to 1500+ Google Fonts with search and preview
 - **Text Styling**: Font weight, italic, underline, strikethrough options
@@ -40,6 +46,7 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 - **Line Height**: Adjustable spacing for multi-line text
 
 ### Multi-Language Support
+
 - **Multiple Languages**: Add translations for any language
 - **Language Flags**: Visual language switcher with flag icons
 - **AI-Powered Translation**: Auto-translate using Claude, OpenAI, or Google AI
@@ -49,80 +56,70 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 - **Multi-Language Export**: Export current language only or all languages in separate folders
 
 ### Project Management
+
 - **Multiple Projects**: Create, rename, and delete projects
-- **Auto-Save**: All changes saved automatically to browser storage
+- **Auto-Save**: All changes saved automatically to browser storage via IndexedDB
 - **Screenshot Count**: See screenshot counts in project selector
 
 ### User Interface
+
 - **Dark Theme**: Easy on the eyes for extended editing sessions
 - **Side Preview Carousel**: See adjacent screenshots while editing
 - **Drag & Drop**: Reorder screenshots by dragging
 - **Collapsible Sections**: Clean UI with expandable settings panels
 - **Tab Persistence**: Remembers your active tab between sessions
 
+### MCP Automation
+
+This fork adds a full **MCP server** for coding agents.
+
+With MCP, agents can:
+
+- Create, switch, rename, duplicate, and delete projects
+- Add blank screenshots or upload screenshot images
+- Configure output sizes and languages
+- Set backgrounds, background images, and device mockup settings
+- Set localized headline and subheadline text
+- Add and edit overlay elements such as text, emoji, icons, graphics, and popouts
+- Export PNG files and ZIP bundles
+- Capture editor previews for visual inspection
+- Generate complete multi-screen screenshot sets in one structured tool call
+
 ## Getting Started
 
 ### Just Want to Use It?
 
-Visit **[yuzu-hub.github.io/appscreen](https://appsolves.github.io/appscreen-mcp/)** to use the tool directly in your browser. No installation needed!
+Visit **[appsolves.github.io/appscreen-mcp](https://appsolves.github.io/appscreen-mcp/)** to use the tool directly in your browser. No installation needed!
 
 ---
 
 ### Want to Develop & Customize?
 
-#### Option 1: With Claude Desktop (Easiest - No Technical Knowledge Required)
+#### Option 1: Run Locally (Command Line)
 
-Perfect for non-technical users who want to run and modify the tool locally with AI assistance:
-
-1. **Install GitHub Desktop**
-   - Download from [desktop.github.com](https://desktop.github.com)
-   - Install and sign in with your GitHub account
-
-2. **Clone this repository**
-   - Click the green "Code" button above → "Open with GitHub Desktop"
-   - Choose where to save it (e.g., Documents folder)
-
-3. **Install Claude Desktop**
-   - Download from [claude.ai/download](https://claude.ai/download)
-   - Sign in with your Anthropic account
-
-4. **Open in Claude Desktop**
-   - Open Claude Desktop app
-   - Click the "Code" tab at the top
-   - Click "Open Folder" and select the cloned repository folder
-
-5. **Start the app**
-   - Simply type: **"start the app"**
-   - Claude will automatically start the server and tell you which URL to open in your browser
-   - Claude monitors the server and reports any issues
-
-6. **Make changes**
-   - Ask Claude to modify features, fix bugs, or add functionality
-   - Claude will show you the proposed commit message before committing
-   - All changes are automatically saved to Git
-
-No command line, no technical setup - just chat with Claude!
-
-#### Option 2: Run Locally (Command Line)
-
-Since this app uses IndexedDB for persistence, you need to serve it through a local web server:
+Since this app uses IndexedDB for persistence, you need to serve it through a local web server.
 
 ```bash
+# From the repository root
+
 # Using Python
-cd appscreen
 python3 -m http.server 8000
 
-# Using Node.js
+# Or using Node.js
 npx serve .
 ```
 
-Then open `http://localhost:8000` in your browser.
+Then open:
 
-#### Option 3: VS Code Live Server
+```txt
+http://localhost:8000
+```
 
-If you have the "Live Server" extension installed in VS Code, right-click `index.html` and select "Open with Live Server".
+#### Option 2: VS Code Live Server
 
-#### Option 4: Docker
+If you have the "Live Server" extension installed in VS Code, right-click `index.html` and select **Open with Live Server**.
+
+#### Option 3: Docker
 
 Run the pre-built Docker image from GitHub Container Registry:
 
@@ -134,7 +131,11 @@ docker run -d -p 8080:80 ghcr.io/yuzu-hub/appscreen:latest
 docker compose up -d
 ```
 
-Then open `http://localhost:8080` in your browser.
+Then open:
+
+```txt
+http://localhost:8080
+```
 
 #### Building locally
 
@@ -146,17 +147,43 @@ docker compose -f docker-compose.build.yml up -d
 
 ## MCP Server
 
-This fork includes a full Model Context Protocol server under `mcp-server/`. It lets coding agents control projects, screenshots, languages, backgrounds, mockups, text overlays, elements, popouts, and PNG/ZIP exports through structured MCP tools.
+This fork includes a full **Model Context Protocol server** under `mcp-server/`.
 
-The browser app exposes a stable internal automation API in `mcp-bridge.js`; the MCP server drives that API with Playwright instead of brittle DOM scraping.
+The browser app exposes a stable internal automation API in `mcp-bridge.js`. The MCP server uses **Playwright** to open the app and call `window.AppScreenMCP` directly, instead of relying on brittle DOM scraping.
 
-Quick start:
+This makes the tool reliable and agent-friendly for systems such as:
+
+- Codex
+- Claude Desktop
+- Cursor
+- other MCP-compatible clients
+
+### What the MCP server can do
+
+The MCP server exposes structured tools for:
+
+- project management
+- screenshot upload and selection
+- localized screenshot images
+- output size configuration
+- language configuration
+- backgrounds and background images
+- mockup/device positioning
+- headline and subheadline control
+- overlays such as text, emoji, icons, graphics, and popouts
+- style propagation across screenshots
+- current PNG export
+- ZIP export of all screenshots
+- editor preview capture
+- full multi-screen screenshot set creation in one call
+
+### Quick start
 
 ```bash
-# terminal 1, from the repository root
+# Terminal 1, from repository root
 python3 -m http.server 8000
 
-# terminal 2
+# Terminal 2
 cd mcp-server
 npm install
 npx playwright install chromium
@@ -164,7 +191,23 @@ npm run build
 APPSCREEN_URL=http://localhost:8000 npm start
 ```
 
-See `mcp-server/README.md` for Claude Desktop configuration and the complete tool list.
+For the hosted fork:
+
+```bash
+cd mcp-server
+npm install
+npx playwright install chromium
+npm run build
+APPSCREEN_URL=https://appsolves.github.io/appscreen-mcp/ npm start
+```
+
+See **[`mcp-server/README.md`](mcp-server/README.md)** for:
+
+- MCP setup
+- Claude Desktop configuration
+- package usage
+- recommended workflows
+- complete MCP tool list
 
 ## Usage
 
@@ -184,9 +227,9 @@ To use the AI-powered translation feature:
 2. Choose your AI provider (Claude, OpenAI, or Google)
 3. Enter your API key from the respective provider's console
 4. Add multiple languages to your headline/subheadline
-5. Click the translate icon and use "Auto-translate with AI"
+5. Click the translate icon and use **Auto-translate with AI**
 
-Your API key is stored locally in your browser and only sent to the respective AI provider's API.
+Your API key is stored locally in your browser and only sent to the selected AI provider's API.
 
 ## Tech Stack
 
@@ -197,6 +240,8 @@ Your API key is stored locally in your browser and only sent to the respective A
 - JSZip for batch export
 - Google Fonts API for font picker
 - Claude/OpenAI/Google APIs for translations
+- Playwright for MCP-driven browser automation
+- MCP server built with `@modelcontextprotocol/sdk`
 - Docker + nginx for containerized deployment
 
 ## Apps Using This Project
@@ -211,19 +256,20 @@ Built something with this tool? Add your app to the list by submitting a pull re
 | Trakz Sales Tracker | Manage sales for restaurants and small businesses | [apple.com](https://apps.apple.com/us/app/trakz-sales-tracker/id6748954468) |
 | AI Soccer Insights Football IQ | AI-powered football predictions and insights | [apple.com](https://apps.apple.com/us/app/ai-soccer-insights-football-iq/id6592649804) |
 | Navegatime | time tracking for workers and business functions | [play.google.com](https://play.google.com/store/apps/details?id=com.companyname.NavegaTime) |
-| Sommo | Your personal wine journey — scan labels, learn wine, and build your tasting journal | [sommo.app](https://sommo.app) |
+| Sommo | Your personal wine journey - scan labels, learn wine, and build your tasting journal | [sommo.app](https://sommo.app) |
 | Dandelion: Write and Let Go | An ephemeral journal for writing to let go, not save. | [apple.com](https://apps.apple.com/us/app/dandelion-write-and-let-go/id6757363901) |
 | *Your app here* | *Submit a PR to add your app* | *Your app link* |
 
 ## License
 
-MIT License - feel free to use, modify, and distribute.
+MIT License. Feel free to use, modify, and distribute.
 
 ## Credits
-- **Samsung Galaxy S25 Ultra 3D Model** by [mistJS](https://sketchfab.com/mistjs) - Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
+- **Samsung Galaxy S25 Ultra 3D Model** by [mistJS](https://sketchfab.com/mistjs) - Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - **iPhone 15 Pro Max 3D Model** by [MajdyModels](https://sketchfab.com/majdymodels) - Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ## Author
 
-Proudly vibe coded by [Stefan](https://github.com/BlackMac) at [YuzuHub](https://yuzuhub.com/en) — building smart AI products from Düsseldorf, Germany.
+Original project by [Stefan](https://github.com/BlackMac) at [YuzuHub](https://yuzuhub.com/en).  
+This fork and MCP integration are maintained by [AppSolves](https://appsolves.dev).

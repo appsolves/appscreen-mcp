@@ -48,6 +48,19 @@ python3 -m http.server 8000
 }
 ```
 
+## Codex example
+
+```toml
+[mcp_servers.appscreen]
+command = "npx"
+args = ["-y", "@appsolves/appscreen-mcp@latest"]
+
+[mcp_servers.appscreen.env]
+APPSCREEN_URL = "https://appsolves.github.io/appscreen-mcp/"
+APPSCREEN_OUTPUT_DIR = "./outputs"  # Optional: defaults to ~/AppScreenMCP/outputs
+APPSCREEN_HEADLESS = "true"         # Optional: set to "false" to see the browser during development
+```
+
 ## Main tools
 
 - `appscreen_initialize`
