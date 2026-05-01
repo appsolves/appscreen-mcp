@@ -31,6 +31,44 @@ For local development, start the app from the repository root first:
 python3 -m http.server 8000
 ```
 
+## Environment variables
+
+| Variable | Required | Default | Description |
+|---|---:|---|---|
+| `APPSCREEN_URL` | No | `https://appsolves.github.io/appscreen-mcp/` | URL of the AppScreen frontend that the MCP server should control. Use `http://localhost:8000` for local development or your hosted GitHub Pages URL for the public app. |
+| `APPSCREEN_OUTPUT_DIR` | No | `~/AppScreenMCP/outputs` | Directory where exported PNG/ZIP artifacts are saved when `saveToFile` is enabled. Relative paths are resolved from the MCP server process working directory, so absolute paths are recommended for predictable behavior. |
+| `APPSCREEN_HEADLESS` | No | `true` | Controls whether Playwright runs Chromium hidden or visible. Set to `false` to see the browser while debugging or watching an agent control the app. |
+| `APPSCREEN_BROWSER_TIMEOUT_MS` | No | `60000` | Timeout in milliseconds for browser navigation, bridge initialization, and Playwright operations. Increase this if the hosted app or large screenshot sets load slowly. |
+| `APPSCREEN_BROWSER_PROFILE_DIR` | No | `~/AppScreenMCP/browser-profile` | Persistent Chromium profile directory used by Playwright. This preserves browser storage such as IndexedDB between MCP runs. Use a stable absolute path if you want AppScreen projects to persist after closing the browser. |
+
+### Recommended defaults
+
+For most users, only `APPSCREEN_URL` and optionally `APPSCREEN_HEADLESS` are needed:
+
+```toml
+[mcp_servers.appscreen.env]
+APPSCREEN_URL = "https://appsolves.github.io/appscreen-mcp/"
+APPSCREEN_HEADLESS = "true"
+```
+
+If you want predictable export and browser persistence paths, set absolute directories:
+
+```toml
+[mcp_servers.appscreen.env]
+APPSCREEN_URL = "https://appsolves.github.io/appscreen-mcp/"
+APPSCREEN_OUTPUT_DIR = "C:/Users/YourName/AppScreenMCP/outputs"
+APPSCREEN_BROWSER_PROFILE_DIR = "C:/Users/YourName/AppScreenMCP/browser-profile"
+APPSCREEN_HEADLESS = "false"
+```
+
+### Notes
+
+- `APPSCREEN_OUTPUT_DIR` controls exported files only. It does not control browser storage.
+- `APPSCREEN_BROWSER_PROFILE_DIR` controls Chromium's persistent profile, including IndexedDB.
+- If `APPSCREEN_BROWSER_PROFILE_DIR` is not stable or not configured in older versions, projects created inside the Playwright browser may disappear when the browser closes.
+- `APPSCREEN_HEADLESS = "false"` is useful during development because you can watch the agent control the app in real time.
+- Avoid using `./outputs` in shared documentation unless you intentionally want outputs relative to the MCP server process working directory.
+
 ## Claude Desktop example
 
 ```json

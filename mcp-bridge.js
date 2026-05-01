@@ -13,7 +13,7 @@
 (function () {
     'use strict';
 
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.2';
     const IMAGE_LOAD_TIMEOUT_MS = 30_000;
     const RENDER_SETTLE_MS = 150;
 

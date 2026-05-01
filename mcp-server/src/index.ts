@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { chromium, type Browser, type Page } from 'playwright';
+import { chromium, type BrowserContext, type Page } from 'playwright';
 import { z } from 'zod';
 
 const DEFAULT_APP_URL = process.env.APPSCREEN_URL ?? 'https://appsolves.github.io/appscreen-mcp/';
@@ -24,13 +24,17 @@ type BridgeResponse<T = unknown> = {
   [key: string]: unknown;
 };
 
-let browser: Browser | null = null;
+const USER_DATA_DIR =
+  process.env.APPSCREEN_BROWSER_PROFILE_DIR ??
+  path.join(os.homedir(), 'AppScreenMCP', 'browser-profile');
+
+let browserContext: BrowserContext | null = null;
 let page: Page | null = null;
 let currentUrl = DEFAULT_APP_URL;
 
 const server = new McpServer({
   name: 'appscreen-mcp',
-  version: '1.0.1',
+  version: '1.0.2',
 });
 
 function text(data: unknown) {
@@ -105,12 +109,19 @@ async function saveBase64Artifact(base64: string, fileName: string, mimeType: st
 }
 
 async function getPage(url = currentUrl) {
-  if (!browser) {
-    browser = await chromium.launch({ headless: HEADLESS });
+  if (!browserContext) {
+    await mkdir(USER_DATA_DIR, { recursive: true });
+
+    browserContext = await chromium.launchPersistentContext(USER_DATA_DIR, {
+      headless: HEADLESS,
+      acceptDownloads: true,
+    });
+
+    browserContext.setDefaultTimeout(BROWSER_TIMEOUT_MS);
   }
 
   if (!page || page.isClosed()) {
-    page = await browser.newPage({ acceptDownloads: true });
+    page = browserContext.pages()[0] ?? await browserContext.newPage();
     page.setDefaultTimeout(BROWSER_TIMEOUT_MS);
   }
 
@@ -118,7 +129,10 @@ async function getPage(url = currentUrl) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: BROWSER_TIMEOUT_MS });
   }
 
-  await page.waitForFunction(() => Boolean((window as any).AppScreenMCP), undefined, { timeout: BROWSER_TIMEOUT_MS });
+  await page.waitForFunction(() => Boolean((window as any).AppScreenMCP), undefined, {
+    timeout: BROWSER_TIMEOUT_MS,
+  });
+
   return page;
 }
 
@@ -660,12 +674,12 @@ registerTool(
 );
 
 process.on('SIGINT', async () => {
-  await browser?.close().catch(() => undefined);
+  await browserContext?.close().catch(() => undefined);
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  await browser?.close().catch(() => undefined);
+  await browserContext?.close().catch(() => undefined);
   process.exit(0);
 });
 
