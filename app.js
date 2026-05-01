@@ -1482,7 +1482,7 @@ function initSync() {
     updateGradientStopsUI();
     updateCanvas();
     // Then load saved data asynchronously
-    init();
+    window.__APPSCREEN_INIT_PROMISE = init();
 }
 
 // Save state to IndexedDB for current project

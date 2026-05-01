@@ -144,6 +144,28 @@ If you want to build the image yourself:
 docker compose -f docker-compose.build.yml up -d
 ```
 
+## MCP Server
+
+This fork includes a full Model Context Protocol server under `mcp-server/`. It lets coding agents control projects, screenshots, languages, backgrounds, mockups, text overlays, elements, popouts, and PNG/ZIP exports through structured MCP tools.
+
+The browser app exposes a stable internal automation API in `mcp-bridge.js`; the MCP server drives that API with Playwright instead of brittle DOM scraping.
+
+Quick start:
+
+```bash
+# terminal 1, from the repository root
+python3 -m http.server 8000
+
+# terminal 2
+cd mcp-server
+npm install
+npx playwright install chromium
+npm run build
+APPSCREEN_URL=http://localhost:8000 npm start
+```
+
+See `mcp-server/README.md` for Claude Desktop configuration and the complete tool list.
+
 ## Usage
 
 1. **Upload Screenshots**: Drag and drop your app screenshots or click to browse

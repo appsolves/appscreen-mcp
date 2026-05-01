@@ -1,0 +1,31 @@
+{
+  "name": "appscreen-mcp-server",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kaan Gönüldinc",
+    "email": "contact@appsolves.dev",
+    "url": "https://appsolves.dev"
+  },
+  "description": "MCP server for controlling the AppScreen App Store Screenshot Generator.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "appscreen-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "playwright": "^1.56.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
