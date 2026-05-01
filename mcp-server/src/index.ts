@@ -3,12 +3,15 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import crypto from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright';
 import { z } from 'zod';
 
-const DEFAULT_APP_URL = process.env.APPSCREEN_URL ?? 'http://localhost:8000';
-const OUTPUT_DIR = path.resolve(process.env.APPSCREEN_OUTPUT_DIR ?? path.join(process.cwd(), 'outputs'));
+const DEFAULT_APP_URL = process.env.APPSCREEN_URL ?? 'https://appsolves.github.io/appscreen-mcp/';
+const OUTPUT_DIR =
+  process.env.APPSCREEN_OUTPUT_DIR ??
+  path.join(os.homedir(), 'AppScreenMCP', 'outputs');
 const HEADLESS = process.env.APPSCREEN_HEADLESS !== 'false';
 const BROWSER_TIMEOUT_MS = Number(process.env.APPSCREEN_BROWSER_TIMEOUT_MS ?? 60_000);
 
@@ -26,7 +29,7 @@ let page: Page | null = null;
 let currentUrl = DEFAULT_APP_URL;
 
 const server = new McpServer({
-  name: 'appscreen-mcp-server',
+  name: 'appscreen-mcp',
   version: '1.0.0',
 });
 
