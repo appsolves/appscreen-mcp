@@ -115,13 +115,13 @@ pub fn run() {
                     // Help links open directly in system browser
                     "documentation" => {
                         let _ = tauri_plugin_opener::open_url(
-                            "https://github.com/YUZU-Hub/appscreen",
+                            "https://github.com/AppSolves/appscreen-mcp",
                             None::<&str>,
                         );
                     }
                     "report-issue" => {
                         let _ = tauri_plugin_opener::open_url(
-                            "https://github.com/YUZU-Hub/appscreen/issues",
+                            "https://github.com/AppSolves/appscreen-mcp/issues",
                             None::<&str>,
                         );
                     }

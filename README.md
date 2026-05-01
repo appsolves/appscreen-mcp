@@ -3,7 +3,7 @@
 A free, open-source tool for creating beautiful App Store screenshots with customizable backgrounds, text overlays, and 3D device mockups.
 
 
-**[Start using it now. Hosted on GitHub Pages](https://yuzu-hub.github.io/appscreen/)**
+**[Start using it now. Hosted on GitHub Pages](https://appsolves.github.io/appscreen-mcp/)**
 
 ![App Store Screenshot Generator](img/screenshot-generator.png)
 
@@ -64,7 +64,7 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 
 ### Just Want to Use It?
 
-Visit **[yuzu-hub.github.io/appscreen](https://yuzu-hub.github.io/appscreen/)** to use the tool directly in your browser. No installation needed!
+Visit **[yuzu-hub.github.io/appscreen](https://appsolves.github.io/appscreen-mcp/)** to use the tool directly in your browser. No installation needed!
 
 ---
 
