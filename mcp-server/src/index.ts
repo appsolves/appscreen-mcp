@@ -263,7 +263,14 @@ registerTool(
     if (url) currentUrl = url;
     const p = await getPage(currentUrl);
     const health = await bridge('health');
-    return { ok: true, url: p.url(), outputDir: OUTPUT_DIR, headless: HEADLESS, health };
+    return {
+      ok: true,
+      url: p.url(),
+      outputDir: OUTPUT_DIR,
+      browserProfileDir: USER_DATA_DIR,
+      headless: HEADLESS,
+      health,
+    };
   },
 );
 
