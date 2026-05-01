@@ -71,9 +71,7 @@ pub fn run() {
                 .build()?;
 
             // Build View menu
-            let view_menu = SubmenuBuilder::new(handle, "View")
-                .fullscreen()
-                .build()?;
+            let view_menu = SubmenuBuilder::new(handle, "View").fullscreen().build()?;
 
             // Build Window menu
             let window_menu = SubmenuBuilder::new(handle, "Window")
@@ -84,8 +82,8 @@ pub fn run() {
                 .build()?;
 
             // Build Help menu
-            let documentation = MenuItemBuilder::with_id("documentation", "Documentation")
-                .build(handle)?;
+            let documentation =
+                MenuItemBuilder::with_id("documentation", "Documentation").build(handle)?;
             let report_issue =
                 MenuItemBuilder::with_id("report-issue", "Report Issue").build(handle)?;
             let visit_website =
@@ -99,19 +97,13 @@ pub fn run() {
                 .build()?;
 
             // Build the full menu bar
-            let mut builder = MenuBuilder::new(handle);
+            let builder = MenuBuilder::new(handle);
             #[cfg(target_os = "macos")]
             {
                 builder = builder.item(&app_menu);
             }
             let menu = builder
-                .items(&[
-                    &file_menu,
-                    &edit_menu,
-                    &view_menu,
-                    &window_menu,
-                    &help_menu,
-                ])
+                .items(&[&file_menu, &edit_menu, &view_menu, &window_menu, &help_menu])
                 .build()?;
 
             app.set_menu(menu)?;
@@ -134,10 +126,8 @@ pub fn run() {
                         );
                     }
                     "visit-website" => {
-                        let _ = tauri_plugin_opener::open_url(
-                            "https://yuzuhub.com/en",
-                            None::<&str>,
-                        );
+                        let _ =
+                            tauri_plugin_opener::open_url("https://yuzuhub.com/en", None::<&str>);
                     }
                     // All other menu actions are forwarded to the frontend
                     _ => {
