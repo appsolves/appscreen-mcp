@@ -13,6 +13,9 @@ A free, open-source tool for creating beautiful App Store screenshots with custo
 
 ## Features
 
+> [!TIP]
+> This tool has an `npm` package available under [`@appsolves/appscreen-mcp`](https://www.npmjs.com/package/@appsolves/appscreen-mcp) that exposes the full screenshot generator functionality as an MCP server. See the [**MCP Automation**](#mcp-automation) section below and the [MCP server README](mcp-server/README.md) for details.
+
 ### Output & Export
 
 - **Multiple Output Sizes**: iPhone 6.9", 6.7", 6.5", 5.5" and iPad 12.9", 11" App Store requirements, plus custom sizes
@@ -125,7 +128,7 @@ Run the pre-built Docker image from GitHub Container Registry:
 
 ```bash
 # Using Docker directly
-docker run -d -p 8080:80 ghcr.io/yuzu-hub/appscreen:latest
+docker run -d -p 8080:80 ghcr.io/appsolves/appscreen-mcp:latest
 
 # Using Docker Compose
 docker compose up -d
