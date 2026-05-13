@@ -3,8 +3,9 @@
 
 FROM nginx:alpine
 
+LABEL org.opencontainers.image.source="https://github.com/AppSolves/appscreen-mcp"
 LABEL maintainer="App Store Screenshot Generator"
-LABEL description="Browser-based tool for creating App Store marketing screenshots"
+LABEL description="Browser-based app store screenshot generator with MCP automation bridge"
 
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
@@ -16,6 +17,7 @@ COPY styles.css /usr/share/nginx/html/
 COPY three-renderer.js /usr/share/nginx/html/
 COPY language-utils.js /usr/share/nginx/html/
 COPY magical-titles.js /usr/share/nginx/html/
+COPY lucide-icons.js /usr/share/nginx/html/
 COPY llm.js /usr/share/nginx/html/
 COPY mcp-bridge.js /usr/share/nginx/html/
 
